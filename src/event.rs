@@ -4,6 +4,7 @@ use anyhow::{anyhow, Result};
 use chrono::prelude::*;
 
 const DATE_TIME_FORMAT: &str = "%Y%m%dT%H%M%SZ";
+const DATE_TIME_FORMAT_NOZ: &str = "%Y%m%dT%H%M%S";
 
 /// Represents an Ical event with parsed information
 #[derive(Debug)]
@@ -63,6 +64,11 @@ impl fmt::Display for Event<'_> {
     }
 }
 
+fn parse_date(input: &str) -> std::result::Result<NaiveDateTime, chrono::ParseError> {
+    NaiveDateTime::parse_from_str(input, DATE_TIME_FORMAT)
+        .or_else(|_| NaiveDateTime::parse_from_str(input, DATE_TIME_FORMAT_NOZ))
+}
+
 impl<'e> From<&'e ical::parser::ical::component::IcalEvent> for Event<'e> {
     fn from(ical: &'e ical::parser::ical::component::IcalEvent) -> Self {
         Self {
@@ -77,7 +83,7 @@ impl<'e> From<&'e ical::parser::ical::component::IcalEvent> for Event<'e> {
                         .as_deref()
                         .ok_or_else(|| anyhow!("DTSTART property is empty"))
                 })
-                .and_then(|s| Ok(NaiveDateTime::parse_from_str(s, DATE_TIME_FORMAT)?)),
+                .and_then(|s| Ok(parse_date(s)?)),
             dtend: ical
                 .properties
                 .iter()
@@ -88,7 +94,7 @@ impl<'e> From<&'e ical::parser::ical::component::IcalEvent> for Event<'e> {
                         .as_deref()
                         .ok_or_else(|| anyhow!("DTEND property is empty"))
                 })
-                .and_then(|s| Ok(NaiveDateTime::parse_from_str(s, DATE_TIME_FORMAT)?)),
+                .and_then(|s| Ok(parse_date(s)?)),
         }
     }
 }
