@@ -14,6 +14,10 @@ pub struct MatchTree {
 
 impl MatchTree {
     pub fn is_match(&self, event: &Event) -> Option<isize> {
+        if self.groups.is_empty() {
+            return Some(isize::MIN);
+        }
+
         self.groups
             .iter()
             .find(|(_id, group)| group.is_match(event))

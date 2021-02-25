@@ -18,6 +18,10 @@ impl Event<'_> {
         self.dtstart.as_ref()
     }
 
+    pub fn dtend(&self) -> std::result::Result<&NaiveDateTime, &anyhow::Error> {
+        self.dtend.as_ref()
+    }
+
     pub fn duration(&self) -> Result<chrono::Duration> {
         Ok(*self
             .dtend
@@ -27,6 +31,21 @@ impl Event<'_> {
                 .dtstart
                 .as_ref()
                 .map_err(|_| anyhow!("missing dtstart for duration"))?)
+    }
+
+    pub fn prop(&self, name: &str) -> Option<&str> {
+        self.properties
+            .iter()
+            .find(|p| p.name == name)
+            .and_then(|prop| prop.value.as_deref())
+    }
+
+    pub fn description(&self) -> Option<&str> {
+        self.prop("DESCRIPTION")
+    }
+
+    pub fn summary(&self) -> Option<&str> {
+        self.prop("SUMMARY")
     }
 }
 
